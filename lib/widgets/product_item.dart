@@ -1,29 +1,57 @@
 import 'package:flutter/material.dart';
-import 'package:shop_app/screens/product_detail_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 
 import '../models/products.dart';
+import '../providers/cart.dart';
 
 class ProductItem extends StatelessWidget {
-  final Product product;
-
-  const ProductItem({super.key, required this.product});
+  ProductItem({
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final product = Provider.of<Product>(context);
+    final cart = Provider.of<Cart>(
+      context,
+      listen: false,
+    );
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
       child: GridTile(
         footer: GridTileBar(
           backgroundColor: Colors.black87,
           leading: IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.favorite_rounded,
+            onPressed: () {
+              product.toggleFavouriteStatus();
+            },
+            icon: Icon(
+              product.isFavourite
+                  ? Icons.favorite_rounded
+                  : Icons.favorite_border,
             ),
             color: Theme.of(context).colorScheme.secondary,
           ),
           trailing: IconButton(
-              onPressed: () {},
+              onPressed: () {
+                cart.addItem(product);
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Item added to cart!'),
+                    duration: Duration(
+                      seconds: 2,
+                    ),
+                    action: SnackBarAction(
+                      label: 'UNDO',
+                      onPressed: () {
+                        cart.removeSingleItem(product.id);
+                      },
+                    ),
+                  ),
+                );
+              },
               icon: const Icon(
                 Icons.shopping_cart,
               ),
@@ -35,14 +63,9 @@ class ProductItem extends StatelessWidget {
         ),
         child: GestureDetector(
           onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) {
-                  return ProductDetailScreen(
-                    product: product,
-                  );
-                },
-              ),
+            context.goNamed(
+              'product_detail',
+              extra: product,
             );
           },
           child: Image.network(
