@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import '../models/products.dart';
+import '../providers/auth.dart';
 import '../providers/cart.dart';
 
 class ProductItem extends StatelessWidget {
@@ -17,6 +18,7 @@ class ProductItem extends StatelessWidget {
       context,
       listen: false,
     );
+    final authData = Provider.of<Auth>(context, listen: false);
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
       child: GridTile(
@@ -24,7 +26,7 @@ class ProductItem extends StatelessWidget {
           backgroundColor: Colors.black87,
           leading: IconButton(
             onPressed: () {
-              product.toggleFavouriteStatus();
+              product.toggleFavouriteStatus(authData.token!, authData.userId!);
             },
             icon: Icon(
               product.isFavourite
@@ -68,12 +70,17 @@ class ProductItem extends StatelessWidget {
               extra: product,
             );
           },
-          child: Image.network(
-            product.imageUrl,
-            fit: BoxFit.cover,
+          child: Hero(
+            tag: product.id,
+            child: FadeInImage(
+              placeholder: AssetImage('assets/images/product-placeholder.png'),
+              image: NetworkImage(product.imageUrl),
+              fit: BoxFit.cover,
+            
+              ),
+          ),
           ),
         ),
-      ),
     );
   }
 }
